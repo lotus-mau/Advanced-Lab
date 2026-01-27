@@ -25,12 +25,12 @@ Langles = np.deg2rad([-85,-65,-50,-35,-20,-10])
 Lcounts = [3,8,18,34,44,50]
 
 # Combined Data
-angles1 = np.concat((Langles,Rangles))
-ncounts = norm(np.concat((Lcounts,Rcounts)))
-ncounts_err = np.sqrt(np.concat((Lcounts,Rcounts)))/np.max(np.concat((Lcounts,Rcounts)))
+angles1 = np.concatenate((Langles,Rangles))
+ncounts = norm(np.concatenate((Lcounts,Rcounts)))
+ncounts_err = np.sqrt(np.concatenate((Lcounts,Rcounts)))/np.max(np.concatenate((Lcounts,Rcounts)))
 
-counts1 = np.concat((Lcounts,Rcounts))
-counts1_err = np.sqrt(np.concat((Lcounts,Rcounts)))
+counts1 = np.concatenate((Lcounts,Rcounts))
+counts1_err = np.sqrt(np.concatenate((Lcounts,Rcounts)))
 
 def func(x,a):
     return a * np.cos(x)**2
@@ -38,7 +38,7 @@ def func(x,a):
 popt, pcov = curve_fit(func,angles1,counts1)
 
 # cos**2 distribution
-x = np.linspace(-np.pi/2,np.pi/2,20)
+x = np.linspace(-np.pi/2,3*np.pi/2,40)
 cy = popt[0]*np.cos(x)**2
 
 #make a normed counts vs cos to see how well it fits to the distribution
@@ -53,7 +53,7 @@ plt.legend()
 #%% Our Code
 
 angles = np.deg2rad([100, 115, 130, 145, 160, 170, 180, 190, 200, 215, 230, 245, 260])
-counts = np.array([1, 14, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+counts = np.array([1, 14, 20, 18, 51, 47, 47, 14, 0, 0, 0, 0, 0])
 counts_err = np.sqrt(counts)
 
 def func(x,a):
@@ -61,7 +61,6 @@ def func(x,a):
 
 # popt, pcov = curve_fit(func,angles,counts)
 
-plt.figure()
 plt.errorbar(angles, counts, counts_err, linestyle="", marker=".", label="Data")
 plt.legend()
 
