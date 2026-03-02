@@ -63,8 +63,8 @@ cy = popt[0]*np.cos(x2)**2
 
 plt.errorbar(angles, counts, counts_err, 
              linestyle="", marker=".", label="Data")
-plt.errorbar(angles_cuts, counts_cuts, counts_err_cuts,
-             linestyle="", marker=".", label="Cut Data")
+# plt.errorbar(angles_cuts, counts_cuts, counts_err_cuts,
+#              linestyle="", marker=".", label="Cut Data")
 plt.plot(x2,cy,label="Fitting")
 plt.plot(x2,66*np.cos(x2)**2,label="Model") # why A = 66?
 
@@ -95,8 +95,8 @@ plt.errorbar(angles, ncounts, ncounts_err,
 # Cut points
 
 # 90 to 270
-plt.errorbar(angles_cuts, ncounts_cuts, ncounts_err_cuts,
-             linestyle="", marker=".", label="Normalized Cut Data")
+# plt.errorbar(angles_cuts, ncounts_cuts, ncounts_err_cuts,
+#              linestyle="", marker=".", label="Normalized Cut Data")
 
 # Model
 plt.plot(x2, model(x2,1), label='Normalized Model')
