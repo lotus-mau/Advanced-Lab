@@ -74,11 +74,11 @@ plt.title(r'Data Fitted to Model')
 plt.legend()
 
 # plotting normalized points [90, 270]
-ncounts = counts/np.max(counts)
-ncounts_err = counts_err/np.max(counts)
+ncounts = counts/30
+ncounts_err = counts_err/30
 
-ncounts_cuts = counts_cuts/np.max(counts)
-ncounts_err_cuts = counts_err_cuts/np.max(counts)
+ncounts_cuts = counts_cuts/30
+ncounts_err_cuts = counts_err_cuts/30
 
 # fitting normalized points
 popt, pcov = curve_fit(func, angles, ncounts)
@@ -98,13 +98,10 @@ plt.errorbar(angles, ncounts, ncounts_err,
 # plt.errorbar(angles_cuts, ncounts_cuts, ncounts_err_cuts,
 #              linestyle="", marker=".", label="Normalized Cut Data")
 
-# Model
-plt.plot(x2, model(x2,1), label='Normalized Model')
 # Fits
 plt.plot(x2, model(x2, popt[0]), label='Fit2')
-
-plt.xlabel(r'Angles (radians)'); plt.ylabel(r'Normalized Counts')
-plt.title(r'Normalized Data Fitted to Model')
+plt.xlabel(r'Angles (radians)'); plt.ylabel(r'Count Rate (counts/min)')
+plt.title(r'Data for Rates Fitted to Model')
 
 plt.legend()
 
