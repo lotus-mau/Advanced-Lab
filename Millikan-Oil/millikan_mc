@@ -18,51 +18,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+## CONSTANTS
 
-# ============================================================
-# 1. Physical constants and experimental parameters
-# ============================================================
+V = 500.0           # Plate voltage [V]
+d = 5.00e-3         # Plate separation [m]
+eta = 1.84e-5       # Viscosity of air [N s / m^2
+p = 1.0345e5        # Barometric pressure [Pa]
+rho = 8.800e2       # Density of oil [kg / m^3] 
+q_e = 1.609e-19     # Elementary charge [C]
+b = 8.20e-3         # Cunningham correction constant [Pa m]
+g = 9.7901          # Gravitational acceleration [m / s^2]
 
-# Plate voltage [V]
-V = 500.0
+fall_distance = 0.5e-3  # Distance the drop falls through the reticle [m]
+relative_uncertainty = 0.10     # Relative uncertainty for Gaussian smearing
 
-# Plate separation [m]
-d = 5.00e-3
-
-# Viscosity of air [N s / m^2]
-eta = 1.84e-5
-
-# Barometric pressure [Pa]
-p = 1.0345e5
-
-# Density of oil [kg / m^3]
-rho = 8.800e2
-
-# Elementary charge [C]
-q_e = 1.609e-19
-
-# Cunningham correction constant [Pa m]
-b = 8.20e-3
-
-# Gravitational acceleration [m / s^2]
-g = 9.7901
-
-# Distance the drop falls through the reticle [m]
-# Assignment says 0.5 mm
-fall_distance = 0.5e-3
-
-# Relative uncertainty for Gaussian smearing
-# Assignment says to use 10%
-relative_uncertainty = 0.10
-
-# Number of drops and measurements
 num_drops = 10
 measurements_per_drop = 10
 
-
-# ============================================================
-# 2. Helper functions
-# ============================================================
+## HELPERS
 
 def radius_from_fall_velocity(v_fall):
     """
@@ -91,7 +64,6 @@ def radius_from_fall_velocity(v_fall):
     r : float or array
         Drop radius in meters.
     """
-
     return np.sqrt((9 * eta * v_fall) / (2 * g * rho))
 
 
@@ -117,7 +89,6 @@ def millikan_charge(v_fall, v_rise):
     Q : float or array
         Charge on the oil drop in Coulombs.
     """
-
     r = radius_from_fall_velocity(v_fall)
 
     cunningham_factor = (1 + b / (p * r))
@@ -148,7 +119,7 @@ def rise_velocity_from_charge(Q, v_fall):
 
     Then:
 
-        v_fall + v_rise = Q / (A sqrt(v_fall))
+        v_fall + v_rise = Q / (A sqrt\(v_fall))
 
     so:
 
@@ -167,7 +138,6 @@ def rise_velocity_from_charge(Q, v_fall):
     v_rise : float
         Rise velocity in m/s.
     """
-
     r = radius_from_fall_velocity(v_fall)
 
     cunningham_factor = (1 + b / (p * r))
@@ -184,40 +154,25 @@ def rise_velocity_from_charge(Q, v_fall):
 
     return v_rise
 
+## SIMULATION
 
-# ============================================================
-# 3. Generate the 10 ideal drops
-# ============================================================
-
-# For reproducibility
-# Change this number if you want a different simulated data set
+# seed
 np.random.seed(42)
 
 ideal_drop_data = []
 
 for drop_id in range(1, num_drops + 1):
+    
+    n_true = np.random.randint(1, 11)
 
-    # Pick a random number of elementary charges from 1 to 9
-    n_true = np.random.randint(1, 10)
-
-    # True charge on this drop
     Q_true = n_true * q_e
 
-    # Pick a reasonable fall time through 0.5 mm.
-    #
-    # In real Millikan experiments, fall times are commonly several seconds
-    # to a few tens of seconds depending on drop size.
-    #
-    # Here we use a range from 8 s to 25 s.
-    fall_time = np.random.uniform(8.0, 25.0)
+    fall_time = np.random.uniform(9.5, 20.5)
 
-    # Fall velocity
     v_fall_true = fall_distance / fall_time
 
-    # Radius of the drop
     r_true = radius_from_fall_velocity(v_fall_true)
 
-    # Compute the rise velocity required to produce Q = n e
     v_rise_true = rise_velocity_from_charge(Q_true, v_fall_true)
 
     # In rare cases, a randomly chosen fall time and charge can give
@@ -243,9 +198,7 @@ for drop_id in range(1, num_drops + 1):
 ideal_df = pd.DataFrame(ideal_drop_data)
 
 
-# ============================================================
-# 4. Gaussian smear each drop 10 times
-# ============================================================
+## Gaussian smearing
 
 simulated_measurements = []
 
@@ -260,10 +213,7 @@ for _, row in ideal_df.iterrows():
 
     for measurement_id in range(1, measurements_per_drop + 1):
 
-        # Gaussian smearing:
-        #
-        # measured value = random value drawn from a normal distribution
-        # centered at the true value, with sigma = 10% of the true value.
+        # sigma = 10%
         v_fall_measured = np.random.normal(
             loc=v_fall_true,
             scale=relative_uncertainty * v_fall_true
@@ -274,8 +224,6 @@ for _, row in ideal_df.iterrows():
             scale=relative_uncertainty * v_rise_true
         )
 
-        # Avoid unphysical negative smeared velocities.
-        # If a smeared velocity is negative, redraw it.
         while v_fall_measured <= 0:
             v_fall_measured = np.random.normal(
                 loc=v_fall_true,
@@ -287,15 +235,12 @@ for _, row in ideal_df.iterrows():
                 loc=v_rise_true,
                 scale=relative_uncertainty * v_rise_true
             )
-
-        # Convert smeared velocities back into measured times
+        
         fall_time_measured = fall_distance / v_fall_measured
         rise_time_measured = fall_distance / v_rise_measured
 
-        # Use smeared velocities to calculate the measured charge
         Q_measured = millikan_charge(v_fall_measured, v_rise_measured)
 
-        # Convert measured charge into units of e
         charge_in_e = Q_measured / q_e
 
         simulated_measurements.append({
@@ -317,9 +262,7 @@ for _, row in ideal_df.iterrows():
 simulated_df = pd.DataFrame(simulated_measurements)
 
 
-# ============================================================
-# 5. Print results
-# ============================================================
+## RESULTS
 
 print("\n====================")
 print("IDEAL DROP DATA")
@@ -333,11 +276,6 @@ print(simulated_df)
 
 print("\nTotal number of simulated measurements:", len(simulated_df))
 
-
-# ============================================================
-# 6. Save data to CSV files
-# ============================================================
-
 ideal_df.to_csv("millikan_ideal_drop_data.csv", index=False)
 simulated_df.to_csv("millikan_simulated_measurements.csv", index=False)
 
@@ -345,24 +283,16 @@ print("\nSaved files:")
 print("  millikan_ideal_drop_data.csv")
 print("  millikan_simulated_measurements.csv")
 
+## PLOTTING
 
-# ============================================================
-# 7. Plot the simulated data
-# ============================================================
-
-# ------------------------------------------------------------
-# Plot 1: Measured charge in units of e
-# ------------------------------------------------------------
-
+# Q/e values
 plt.figure(figsize=(9, 6))
-
 plt.scatter(
     simulated_df["drop_id"],
     simulated_df["Q_measured_in_units_of_e"],
     alpha=0.7,
     label="Smeared measurements"
 )
-
 plt.scatter(
     ideal_df["drop_id"],
     ideal_df["n_true"],
@@ -370,52 +300,38 @@ plt.scatter(
     s=100,
     label="True integer charge"
 )
-
 plt.xlabel("Drop ID")
 plt.ylabel(r"Measured charge $Q/e$")
 plt.title("Simulated Millikan Oil Drop Data")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-plt.show()
 
-
-# ------------------------------------------------------------
-# Plot 2: Histogram of measured Q/e values
-# ------------------------------------------------------------
-
+# Q/e values histogram
 plt.figure(figsize=(9, 6))
-
 plt.hist(
     simulated_df["Q_measured_in_units_of_e"],
     bins=20,
     edgecolor="black",
     alpha=0.7
 )
-
 plt.xlabel(r"Measured charge $Q/e$")
 plt.ylabel("Counts")
 plt.title("Histogram of Simulated Measured Charges")
 plt.grid(True)
 plt.tight_layout()
-plt.show()
 
-
-# ------------------------------------------------------------
-# Plot 3: Rise velocity vs fall velocity
-# ------------------------------------------------------------
-
+# Rise v. Fall
 plt.figure(figsize=(9, 6))
-
 plt.scatter(
     simulated_df["v_fall_measured_m_per_s"],
     simulated_df["v_rise_measured_m_per_s"],
     alpha=0.7
 )
-
 plt.xlabel(r"Measured fall velocity $v_{\mathrm{fall}}$ [m/s]")
 plt.ylabel(r"Measured rise velocity $v_{\mathrm{rise}}$ [m/s]")
 plt.title("Rise Velocity vs Fall Velocity")
 plt.grid(True)
 plt.tight_layout()
+
 plt.show()
